@@ -8,11 +8,8 @@ interface Props {
 
 function formatDate(dateStr: string): string {
   if (!dateStr) return ''
-  // format is DD.MM (e.g. "14.06")
-  const [day, mon] = dateStr.split('.')
-  const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря']
-  const monthName = months[parseInt(mon, 10) - 1] ?? ''
-  return `${parseInt(day, 10)} ${monthName}`
+  // already formatted as DD.MM.YYYY
+  return dateStr
 }
 
 function formatTime(timeStr: string): string {

@@ -1,15 +1,10 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 
 interface Props {
   place: string
   onConfirm: (date: string, time: string) => void
 }
-
-const MONTHS = [
-  'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
-  'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь',
-]
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -28,99 +23,81 @@ const itemVariants = {
   },
 }
 
-const inputClass = `
-  glass rounded-xl px-3 py-3 text-rose-700 font-medium text-center
-  border border-rose-200/60 focus:outline-none focus:ring-2
-  focus:ring-rose-400/50 focus:border-rose-400 transition-all
-  text-base w-full
-`
+function toDisplayDate(iso: string): string {
+  const [y, m, d] = iso.split('-')
+  return `${d}.${m}.${y}`
+}
 
-const selectClass = `
-  glass rounded-xl px-3 py-3 text-rose-700 font-medium text-center
-  border border-rose-200/60 focus:outline-none focus:ring-2
-  focus:ring-rose-400/50 focus:border-rose-400 transition-all
-  text-base w-full bg-white/40 appearance-none cursor-pointer
-`
+function addDays(isoDate: string, days: number): string {
+  const d = new Date(isoDate)
+  d.setDate(d.getDate() + days)
+  return d.toISOString().split('T')[0]
+}
+
+const blockKeys = (e: React.KeyboardEvent) => e.preventDefault()
+const blockPaste = (e: React.ClipboardEvent) => e.preventDefault()
 
 export default function ScreenDateTime({ place, onConfirm }: Props) {
-  const [day, setDay] = useState('')
-  const [month, setMonth] = useState('')
-  const [hours, setHours] = useState('')
-  const [minutes, setMinutes] = useState('')
-  const [error, setError] = useState('')
+  const dateRef = useRef<HTMLInputElement>(null)
+  const timeRef = useRef<HTMLInputElement>(null)
 
-  const handleHours = (val: string) => {
-    if (val.length > 2) return
-    if (val !== '' && !/^\d+$/.test(val)) return
-    setHours(val)
-    setError('')
+  const [date, setDate] = useState('')
+  const [time, setTime] = useState('')
+  const [dateError, setDateError] = useState('')
+  const [timeError, setTimeError] = useState('')
+
+  const today = new Date().toISOString().split('T')[0]
+  const maxDate = addDays(today, 365)
+
+  const openDate = () => {
+    dateRef.current?.focus()
+    ;(dateRef.current as HTMLInputElement & { showPicker?: () => void })?.showPicker?.()
   }
 
-  const handleMinutes = (val: string) => {
-    if (val.length > 2) return
-    if (val !== '' && !/^\d+$/.test(val)) return
-    setMinutes(val)
-    setError('')
+  const openTime = () => {
+    timeRef.current?.focus()
+    ;(timeRef.current as HTMLInputElement & { showPicker?: () => void })?.showPicker?.()
   }
 
-  const handleBlurHours = () => {
-    if (hours === '') return
-    const n = parseInt(hours, 10)
-    if (n < 1) setHours('1')
-    else if (n > 24) setHours('24')
-    else setHours(String(n))
-  }
-
-  const handleBlurMinutes = () => {
-    if (minutes === '') return
-    const n = parseInt(minutes, 10)
-    if (n < 1) setMinutes('1')
-    else if (n > 60) setMinutes('60')
-    else setMinutes(String(n))
-  }
-
-  const handleDay = (val: string) => {
-    if (val.length > 2) return
-    if (val !== '' && !/^\d+$/.test(val)) return
-    setDay(val)
-    setError('')
-  }
-
-  const handleBlurDay = () => {
-    if (day === '') return
-    const n = parseInt(day, 10)
-    if (n < 1) setDay('1')
-    else if (n > 31) setDay('31')
-    else setDay(String(n))
+  const handleDateChange = (val: string) => {
+    if (!val) return
+    if (val < today) { setDateError('Дата не может быть в прошлом'); return }
+    if (val > maxDate) { setDateError('Дата не может быть более чем через год'); return }
+    setDate(val)
+    setDateError('')
   }
 
   const handleConfirm = () => {
-    const hasDate = day !== '' || month !== ''
-    const hasTime = hours !== '' || minutes !== ''
+    let valid = true
 
-    if (hasDate) {
-      const d = parseInt(day, 10)
-      if (!day || isNaN(d) || d < 1 || d > 31) { setError('Введи день от 1 до 31'); return }
-      if (!month) { setError('Выбери месяц'); return }
+    if (!date) {
+      setDateError('Выберите дату встречи')
+      valid = false
+    } else if (date < today) {
+      setDateError('Дата не может быть в прошлом')
+      valid = false
+    } else if (date > maxDate) {
+      setDateError('Дата не может быть более чем через год')
+      valid = false
+    } else {
+      setDateError('')
     }
 
-    if (hasTime) {
-      const h = parseInt(hours, 10)
-      const m = parseInt(minutes, 10)
-      if (!hours || isNaN(h) || h < 1 || h > 24) { setError('Часы: от 1 до 24'); return }
-      if (!minutes || isNaN(m) || m < 1 || m > 60) { setError('Минуты: от 1 до 60'); return }
+    if (!time) {
+      setTimeError('Выберите время встречи')
+      valid = false
+    } else {
+      const [h, m] = time.split(':').map(Number)
+      if (h < 0 || h > 23 || m < 0 || m > 59) {
+        setTimeError('Некорректное время')
+        valid = false
+      } else {
+        setTimeError('')
+      }
     }
 
-    setError('')
-
-    const dateStr = hasDate
-      ? `${day.padStart(2, '0')}.${String(MONTHS.indexOf(month) + 1).padStart(2, '0')}`
-      : ''
-    const timeStr = hasTime
-      ? `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`
-      : ''
-
-    onConfirm(dateStr, timeStr)
+    if (!valid) return
+    onConfirm(toDisplayDate(date), time)
   }
 
   return (
@@ -130,7 +107,10 @@ export default function ScreenDateTime({ place, onConfirm }: Props) {
       initial="hidden"
       animate="visible"
     >
-      <motion.div className="glass rounded-3xl p-10 md:p-14 max-w-lg w-full shadow-2xl" variants={itemVariants}>
+      <motion.div
+        className="glass rounded-3xl p-10 md:p-14 max-w-lg w-full shadow-2xl"
+        variants={itemVariants}
+      >
         <motion.div
           className="text-5xl mb-5"
           animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }}
@@ -151,75 +131,111 @@ export default function ScreenDateTime({ place, onConfirm }: Props) {
         </motion.p>
 
         <motion.div className="space-y-5" variants={itemVariants}>
-          {/* Date — day + month */}
+
+          {/* ── Date picker ── */}
           <div className="text-left">
             <label className="block text-rose-600 font-medium mb-2 text-sm">
               📅 Дата встречи
             </label>
-            <div className="flex items-center gap-2">
+
+            {/* Clickable display */}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={openDate}
+              onKeyDown={e => e.key === 'Enter' && openDate()}
+              className={`
+                relative w-full glass rounded-xl px-4 py-3 flex items-center justify-between
+                border transition-all cursor-pointer select-none
+                ${dateError ? 'border-red-400/70' : 'border-rose-200/60'}
+                hover:border-rose-400 focus:outline-none focus:ring-2 focus:ring-rose-400/50
+              `}
+            >
+              <span className={`text-sm md:text-base font-medium ${date ? 'text-rose-700' : 'text-rose-300'}`}>
+                {date ? toDisplayDate(date) : 'Выберите дату'}
+              </span>
+              <span className="text-rose-400 text-lg">📅</span>
+
+              {/* Hidden native input — absorbs click, opens picker */}
               <input
-                type="text"
-                inputMode="numeric"
-                placeholder="ДД"
-                value={day}
-                onChange={e => handleDay(e.target.value)}
-                onBlur={handleBlurDay}
-                maxLength={2}
-                className={inputClass}
+                ref={dateRef}
+                type="date"
+                value={date}
+                min={today}
+                max={maxDate}
+                tabIndex={-1}
+                onChange={e => handleDateChange(e.target.value)}
+                onKeyDown={blockKeys}
+                onKeyUp={blockKeys}
+                onKeyPress={blockKeys}
+                onPaste={blockPaste}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
-              <select
-                value={month}
-                onChange={e => { setMonth(e.target.value); setError('') }}
-                className={selectClass}
-              >
-                <option value="">Месяц</option>
-                {MONTHS.map(m => (
-                  <option key={m} value={m}>{m}</option>
-                ))}
-              </select>
             </div>
+
+            {dateError && (
+              <motion.p
+                key={dateError}
+                className="mt-1 text-xs text-red-400 font-medium"
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                ⚠ {dateError}
+              </motion.p>
+            )}
           </div>
 
-          {/* Time — hours + minutes */}
+          {/* ── Time picker ── */}
           <div className="text-left">
             <label className="block text-rose-600 font-medium mb-2 text-sm">
               🕒 Время встречи
             </label>
-            <div className="flex items-center gap-2">
+
+            {/* Clickable display */}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={openTime}
+              onKeyDown={e => e.key === 'Enter' && openTime()}
+              className={`
+                relative w-full glass rounded-xl px-4 py-3 flex items-center justify-between
+                border transition-all cursor-pointer select-none
+                ${timeError ? 'border-red-400/70' : 'border-rose-200/60'}
+                hover:border-rose-400 focus:outline-none focus:ring-2 focus:ring-rose-400/50
+              `}
+            >
+              <span className={`text-sm md:text-base font-medium ${time ? 'text-rose-700' : 'text-rose-300'}`}>
+                {time || 'Выберите время'}
+              </span>
+              <span className="text-rose-400 text-lg">🕒</span>
+
+              {/* Hidden native input */}
               <input
-                type="text"
-                inputMode="numeric"
-                placeholder="ЧЧ"
-                value={hours}
-                maxLength={2}
-                onChange={e => handleHours(e.target.value)}
-                onBlur={handleBlurHours}
-                className={inputClass}
-              />
-              <span className="text-rose-400 font-bold text-xl flex-shrink-0">:</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="ММ"
-                value={minutes}
-                maxLength={2}
-                onChange={e => handleMinutes(e.target.value)}
-                onBlur={handleBlurMinutes}
-                className={inputClass}
+                ref={timeRef}
+                type="time"
+                value={time}
+                tabIndex={-1}
+                onChange={e => { setTime(e.target.value); setTimeError('') }}
+                onKeyDown={blockKeys}
+                onKeyUp={blockKeys}
+                onKeyPress={blockKeys}
+                onPaste={blockPaste}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
             </div>
-            <p className="mt-1 text-xs text-rose-300/70">часы 1–24 · минуты 1–60</p>
+
+            {timeError && (
+              <motion.p
+                key={timeError}
+                className="mt-1 text-xs text-red-400 font-medium"
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                ⚠ {timeError}
+              </motion.p>
+            )}
           </div>
 
-          {error && (
-            <motion.p
-              className="text-sm text-red-400 font-medium"
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              {error}
-            </motion.p>
-          )}
         </motion.div>
 
         <motion.button
@@ -232,10 +248,6 @@ export default function ScreenDateTime({ place, onConfirm }: Props) {
         >
           Подтвердить ✨
         </motion.button>
-
-        <motion.p className="mt-4 text-xs text-rose-300/60 italic" variants={itemVariants}>
-          Можно пропустить — нажми «Подтвердить» без выбора
-        </motion.p>
       </motion.div>
     </motion.div>
   )
