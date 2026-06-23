@@ -14,7 +14,7 @@ async function notifyMe(place: string, date: string, time: string) {
   const text =
     `💌 Она согласилась!\n\n` +
     `📍 Место: ${place}\n` +
-    `📅 Дата: ${date ? new Date(date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}\n` +
+    `📅 Дата: ${date || '—'}\n` +
     `🕒 Время: ${time || '—'}`
   try {
     await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {

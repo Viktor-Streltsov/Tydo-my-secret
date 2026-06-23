@@ -8,8 +8,11 @@ interface Props {
 
 function formatDate(dateStr: string): string {
   if (!dateStr) return ''
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
+  // format is DD.MM (e.g. "14.06")
+  const [day, mon] = dateStr.split('.')
+  const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря']
+  const monthName = months[parseInt(mon, 10) - 1] ?? ''
+  return `${parseInt(day, 10)} ${monthName}`
 }
 
 function formatTime(timeStr: string): string {
