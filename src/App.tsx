@@ -6,6 +6,27 @@ import ScreenPlace from './components/ScreenPlace'
 import ScreenDateTime from './components/ScreenDateTime'
 import ScreenFinal from './components/ScreenFinal'
 
+const TG_TOKEN = import.meta.env.VITE_TELEGRAM_BOT_TOKEN
+const TG_CHAT_ID = import.meta.env.VITE_TELEGRAM_CHAT_ID
+
+async function notifyMe(place: string, date: string, time: string) {
+  if (!TG_TOKEN || !TG_CHAT_ID) return
+  const text =
+    `💌 Она согласилась!\n\n` +
+    `📍 Место: ${place}\n` +
+    `📅 Дата: ${date ? new Date(date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}\n` +
+    `🕒 Время: ${time || '—'}`
+  try {
+    await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: TG_CHAT_ID, text }),
+    })
+  } catch {
+    // silent fail — девушка не должна видеть ошибку
+  }
+}
+
 type Screen = 'question' | 'place' | 'datetime' | 'final'
 
 const pageVariants = {
@@ -41,6 +62,7 @@ export default function App() {
     setSelectedDate(date)
     setSelectedTime(time)
     setScreen('final')
+    notifyMe(selectedPlace, date, time)
   }
 
   return (

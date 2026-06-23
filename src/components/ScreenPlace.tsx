@@ -5,11 +5,14 @@ interface Props {
 }
 
 const PLACES = [
-  { id: 'cafe', label: 'Кофейня', emoji: '☕', desc: 'Уютная атмосфера и ароматный кофе' },
-  { id: 'restaurant', label: 'Ресторан', emoji: '🍽️', desc: 'Романтический ужин при свечах' },
-  { id: 'park', label: 'Парк', emoji: '🌳', desc: 'Прогулка среди природы' },
-  { id: 'cinema', label: 'Кино', emoji: '🎬', desc: 'Захватывающий фильм вместе' },
-  { id: 'other', label: 'Другое', emoji: '❤️', desc: 'Сюрприз — придумаем вместе' },
+  { id: 'cafe', label: 'Кофейня', emoji: '☕', desc: 'Уютно, тепло и вкусный кофе' },
+  { id: 'park', label: 'Парк', emoji: '🌳', desc: 'Прогулка на свежем воздухе' },
+  { id: 'cinema', label: 'Кино', emoji: '🎬', desc: 'Классный фильм вдвоём' },
+  { id: 'icecream', label: 'Мороженое', emoji: '🍦', desc: 'Погулять и съесть мороженое' },
+  { id: 'bowling', label: 'Боулинг', emoji: '🎳', desc: 'Весело и без лишней серьёзности' },
+  { id: 'embankment', label: 'Набережная', emoji: '🌊', desc: 'Прогулка вдоль воды' },
+  { id: 'market', label: 'Рынок / маркет', emoji: '🛍️', desc: 'Побродить по уличным лавкам' },
+  { id: 'other', label: 'Придумаем вместе', emoji: '✨', desc: 'Сюрприз — решим на месте' },
 ]
 
 const containerVariants = {

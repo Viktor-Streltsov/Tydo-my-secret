@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useLayoutEffect } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { motion, useMotionValue, useSpring } from 'framer-motion'
 
 interface Props {
@@ -19,7 +19,9 @@ export default function ScreenQuestion({ onYes }: Props) {
   const springLeft = useSpring(rawX, SPRING)
   const springTop = useSpring(rawY, SPRING)
 
-  useLayoutEffect(() => {
+  // Measure after card animation completes so transforms are settled
+  const handleCardReady = useCallback(() => {
+    if (ready) return
     const ghost = ghostRef.current
     const container = containerRef.current
     if (!ghost || !container) return
@@ -27,7 +29,6 @@ export default function ScreenQuestion({ onYes }: Props) {
     const gRect = ghost.getBoundingClientRect()
     const cRect = container.getBoundingClientRect()
 
-    // Initial position = ghost's position relative to the container
     const relX = gRect.left - cRect.left
     const relY = gRect.top - cRect.top
 
@@ -39,7 +40,7 @@ export default function ScreenQuestion({ onYes }: Props) {
     setBtnSize({ w: gRect.width, h: gRect.height })
     setReady(true)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [ready])
 
   const escape = useCallback(() => {
     const container = containerRef.current
@@ -76,10 +77,11 @@ export default function ScreenQuestion({ onYes }: Props) {
       initial="hidden"
       animate="visible"
     >
-      <motion.div
-        className="glass rounded-3xl p-10 md:p-16 max-w-xl w-full shadow-2xl"
-        variants={itemVariants}
-      >
+        <motion.div
+          className="glass rounded-3xl p-10 md:p-16 max-w-xl w-full shadow-2xl"
+          variants={itemVariants}
+          onAnimationComplete={handleCardReady}
+        >
         <motion.div
           className="text-6xl mb-6"
           animate={{ scale: [1, 1.15, 1], rotate: [0, 5, -5, 0] }}
