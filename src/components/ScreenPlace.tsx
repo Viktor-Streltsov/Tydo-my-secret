@@ -50,9 +50,9 @@ export default function ScreenPlace({ onSelect }: Props) {
           ✨
         </motion.div>
         <h2 className="text-2xl md:text-3xl font-bold text-gradient">
-          Тогда выбери место нашей встречи ✨
+          Выберите место нашей встречи ✨
         </h2>
-        <p className="mt-3 text-rose-400/70 text-sm">Нажми на понравившийся вариант</p>
+        <p className="mt-3 text-rose-400/70 text-sm">Нажмите на понравившийся вариант</p>
       </motion.div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-2xl w-full">

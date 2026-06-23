@@ -123,7 +123,7 @@ export default function ScreenDateTime({ place, onConfirm }: Props) {
           className="text-2xl md:text-3xl font-bold text-gradient mb-2"
           variants={itemVariants}
         >
-          Когда тебе будет удобно? ️️️️️️💗
+          Когда вам будет удобно? ️️️️️️💗
         </motion.h2>
 
         <motion.p className="text-rose-400/70 text-sm mb-8" variants={itemVariants}>

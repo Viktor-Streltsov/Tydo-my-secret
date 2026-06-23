@@ -94,7 +94,7 @@ export default function ScreenQuestion({ onYes }: Props) {
           className="text-2xl md:text-3xl font-bold text-gradient leading-snug mb-10"
           variants={itemVariants}
         >
-          Ты согласишься пойти со мной на свидание? ❤️
+          Вы согласитесь пойти со мной на свидание? ❤️
         </motion.h1>
 
         <motion.div
