@@ -25,9 +25,33 @@ const itemVariants = {
 
 export default function ScreenDateTime({ place, onConfirm }: Props) {
   const [date, setDate] = useState('')
-  const [time, setTime] = useState('')
+  const [hours, setHours] = useState('')
+  const [minutes, setMinutes] = useState('')
+  const [timeError, setTimeError] = useState('')
+
+  const clampHours = (val: string) => {
+    if (val === '') return ''
+    const n = Math.min(23, Math.max(0, parseInt(val, 10)))
+    return String(n)
+  }
+
+  const clampMinutes = (val: string) => {
+    if (val === '') return ''
+    const n = Math.min(59, Math.max(0, parseInt(val, 10)))
+    return String(n)
+  }
 
   const handleConfirm = () => {
+    const h = parseInt(hours, 10)
+    const m = parseInt(minutes, 10)
+
+    if (hours !== '' || minutes !== '') {
+      if (isNaN(h) || h < 0 || h > 23) { setTimeError('Часы: от 0 до 23'); return }
+      if (isNaN(m) || m < 0 || m > 59) { setTimeError('Минуты: от 0 до 59'); return }
+    }
+
+    setTimeError('')
+    const time = hours !== '' ? `${String(h).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}` : ''
     onConfirm(date, time)
   }
 
@@ -85,17 +109,42 @@ export default function ScreenDateTime({ place, onConfirm }: Props) {
             <label className="block text-rose-600 font-medium mb-2 text-sm">
               🕒 Время встречи
             </label>
-            <input
-              type="time"
-              value={time}
-              onChange={e => setTime(e.target.value)}
-              className="
-                w-full glass rounded-xl px-4 py-3 text-rose-700 font-medium
-                border border-rose-200/60 focus:outline-none focus:ring-2
-                focus:ring-rose-400/50 focus:border-rose-400 transition-all
-                text-sm md:text-base
-              "
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                placeholder="ЧЧ"
+                value={hours}
+                min={0}
+                max={23}
+                onChange={e => { setHours(e.target.value); setTimeError('') }}
+                onBlur={e => setHours(clampHours(e.target.value))}
+                className="
+                  w-full glass rounded-xl px-4 py-3 text-rose-700 font-medium text-center
+                  border border-rose-200/60 focus:outline-none focus:ring-2
+                  focus:ring-rose-400/50 focus:border-rose-400 transition-all
+                  text-sm md:text-base
+                "
+              />
+              <span className="text-rose-400 font-bold text-xl">:</span>
+              <input
+                type="number"
+                placeholder="ММ"
+                value={minutes}
+                min={0}
+                max={59}
+                onChange={e => { setMinutes(e.target.value); setTimeError('') }}
+                onBlur={e => setMinutes(clampMinutes(e.target.value))}
+                className="
+                  w-full glass rounded-xl px-4 py-3 text-rose-700 font-medium text-center
+                  border border-rose-200/60 focus:outline-none focus:ring-2
+                  focus:ring-rose-400/50 focus:border-rose-400 transition-all
+                  text-sm md:text-base
+                "
+              />
+            </div>
+            {timeError && (
+              <p className="mt-1 text-xs text-red-400">{timeError}</p>
+            )}
           </div>
         </motion.div>
 
